@@ -1,0 +1,6 @@
+# depslib dependency file v1.0
+1526914461 source:c:\users\mr.han\desktop\sjtu oj\1232\main.cpp
+	<iostream>
+	<cmath>
+	<vector>
+
