@@ -1,8 +1,9 @@
 #include <iostream>
-
+#include <queue>
 using namespace std;
 
-int num;
+
+
 
 class adjListGraph{
 private:
@@ -25,6 +26,11 @@ private:
         verNode(edgeNode *h = NULL){
             head = h;
         }
+    };
+    struct queueNode{
+        int dist;
+        int node;
+        bool operator<(const queueNode &rp)const{return dist<rp.dist;}
     };
     verNode *verList;
 public:
@@ -78,17 +84,6 @@ public:
         }
         return false;
         }
-
-    void find(int start , int m) const{
-        bool *visited = new bool [Vers+1];
-        int *stack = new int [m+1];
-        int top_index = 0;
-
-        for(int i=0;i<=Vers;++i){
-            visited[i] = false;
-        }
-        find(start,m,top_index,visited, stack);
-    }
     ~adjListGraph(){
         edgeNode *p;
         for(int i=0;i<=Vers;++i)
@@ -98,42 +93,69 @@ public:
             }
         delete [] verList;
     }
+    void dijkstra(int start, int noEdge) const{
+        int * distance = new int[Vers+1];
+        int *prev = new int [Vers+1];
+        bool *known = new bool[Vers+1];
+        int sNo,i;
+        edgeNode *p;
+        priority_queue<queueNode> q;
+        queueNode minn,succ;
+        for(i = 1;i<=Vers;++i){
+            known[i] = false;
+            distance[i] = noEdge;
+        }
+
+        for(sNo = 1;sNo<=Vers;++sNo)
+            if(verList[sNo].ver == start)
+                break;
+        distance[sNo] = 0;
+        prev[sNo] = sNo;
+        minn.dist = 0;
+        minn.node = sNo;
+        q.push(minn);
+
+        while(!q.empty()){
+            minn = q.top();
+            q.pop();
+            if(known[minn.node])continue;
+            known[minn.node] = true;
+            for(p = verList[minn.node].head; p!=NULL ; p = p->next){
+                if(!known[p->end_index] && distance[p->end_index] > minn.dist+p->weight){
+                    succ.dist = distance[p->end_index] = minn.dist+p->weight;
+                    prev[p->end_index] = minn.node;
+                    succ.node = p->end_index;
+                    q.push(succ);
+                }
+            }
+        }
+        for(i = 1;i<=Vers;++i){
+            cout<<"从"<<start<<"到"<<verList[i].ver<<"的路径为:"<<endl;
+            printPath(sNo,i,prev);
+            cout<<"\t长度为:"<<distance[i]<<endl;
+        }
+    }
 private:
-    void find(int start, int m, int &top, bool visited[], int st[])const{
-        edgeNode *p = verList[start].head;
-        visited[start] = true;
-        st[top++] = start;
-        if(top == m+1){
-            ++num;
-            visited[start] = false;
-            --top;
+    void printPath(int start, int end, int prev[])const{
+        if(start==end){
+            cout<<verList[start].ver;
             return;
         }
-        while( p != NULL){
-            if(!visited[p->end_index])
-                find(p->end_index, m, top, visited, st);
-            p = p->next;
-        }
-        visited[start] = false;
-        --top;
+        printPath(start,prev[end],prev);
+        cout<<"-"<<verList[end].ver;
     }
 };
 
-
 int main()
 {
-    num = 0;
-    int n,m;
-    cin>>n>>m;
-    int start, M;
-    cin>>start>>M;
-    int a, b;
-    adjListGraph Graph(n);
-    for(int i=0;i<m;++i){
-        cin>>a>>b;
-        Graph.insert(a,b);
+    int n,m,start,end,a,b,p;
+    cin>>n>>m>>start>>end;
+    adjListGraph graph(n);
+    for(int i=0;i<m;++i)
+    {
+        cin>>a>>b>>p;
+        graph.insert(a,b,p);
     }
-    Graph.find(start, M);
-    cout<<num;
+    graph.dijkstra(start,end);
     return 0;
 }
