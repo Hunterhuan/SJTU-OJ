@@ -2,8 +2,6 @@
 
 using namespace std;
 
-int num;
-
 class adjListGraph{
 private:
     int Vers, Edges;
@@ -27,6 +25,8 @@ private:
         }
     };
     verNode *verList;
+
+
 public:
     adjListGraph(int vSize){
         Vers = vSize;
@@ -67,7 +67,6 @@ public:
         return false;
     }
 
-
     bool exist(int u, int v)const {
         edgeNode *p = verList[u].head;
         while(p!=NULL)
@@ -79,7 +78,8 @@ public:
         return false;
         }
 
-    void find(int start , int m) const{
+    int find(int start , int m) const{
+        int num = 0;
         bool *visited = new bool [Vers+1];
         int *stack = new int [m+1];
         int top_index = 0;
@@ -87,8 +87,10 @@ public:
         for(int i=0;i<=Vers;++i){
             visited[i] = false;
         }
-        find(start,m,top_index,visited, stack);
+        find(start,m,top_index,visited, stack, num);
+        return num;
     }
+
     ~adjListGraph(){
         edgeNode *p;
         for(int i=0;i<=Vers;++i)
@@ -98,11 +100,13 @@ public:
             }
         delete [] verList;
     }
+
 private:
-    void find(int start, int m, int &top, bool visited[], int st[])const{
+    void find(int start, int m, int &top, bool visited[], int st[], int &num)const{
         edgeNode *p = verList[start].head;
         visited[start] = true;
         st[top++] = start;
+        // if stack is full.
         if(top == m+1){
             ++num;
             visited[start] = false;
@@ -111,7 +115,7 @@ private:
         }
         while( p != NULL){
             if(!visited[p->end_index])
-                find(p->end_index, m, top, visited, st);
+                find(p->end_index, m, top, visited, st, num);
             p = p->next;
         }
         visited[start] = false;
@@ -122,7 +126,6 @@ private:
 
 int main()
 {
-    num = 0;
     int n,m;
     cin>>n>>m;
     int start, M;
@@ -133,7 +136,7 @@ int main()
         cin>>a>>b;
         Graph.insert(a,b);
     }
-    Graph.find(start, M);
-    cout<<num;
+    int res = Graph.find(start, M);
+    cout<<res;
     return 0;
 }

@@ -1,8 +1,7 @@
 #include <iostream>
 #include <queue>
+#include <limits.h>
 using namespace std;
-
-
 
 
 class adjListGraph{
@@ -30,7 +29,7 @@ private:
     struct queueNode{
         int dist;
         int node;
-        bool operator<(const queueNode &rp)const{return dist<rp.dist;}
+        bool operator<(const queueNode &rp)const{return dist>rp.dist;}
     };
     verNode *verList;
 public:
@@ -93,56 +92,91 @@ public:
             }
         delete [] verList;
     }
-    void dijkstra(int start, int noEdge) const{
+    void dijkstra(int start, int end) const{
         int * distance = new int[Vers+1];
         int *prev = new int [Vers+1];
         bool *known = new bool[Vers+1];
-        int sNo,i;
-        edgeNode *p;
+        int *steps = new int [Vers+1];
         priority_queue<queueNode> q;
-        queueNode minn,succ;
-        for(i = 1;i<=Vers;++i){
+        int u,sNo,i;
+        edgeNode *p;
+        int min;
+
+        for(i = 0;i<Vers;++i){
             known[i] = false;
-            distance[i] = noEdge;
+            distance[i] = INT_MAX;
+            steps[i] = INT_MAX;
         }
 
-        for(sNo = 1;sNo<=Vers;++sNo)
+
+        for(sNo = 0;sNo<Vers;++sNo)
+        {
             if(verList[sNo].ver == start)
                 break;
+        }
+
         distance[sNo] = 0;
         prev[sNo] = sNo;
-        minn.dist = 0;
-        minn.node = sNo;
-        q.push(minn);
+        steps[sNo] = 0;
 
-        while(!q.empty()){
-            minn = q.top();
-            q.pop();
-            if(known[minn.node])continue;
-            known[minn.node] = true;
-            for(p = verList[minn.node].head; p!=NULL ; p = p->next){
-                if(!known[p->end_index] && distance[p->end_index] > minn.dist+p->weight){
-                    succ.dist = distance[p->end_index] = minn.dist+p->weight;
-                    prev[p->end_index] = minn.node;
-                    succ.node = p->end_index;
-                    q.push(succ);
+        queueNode tmp;
+        for(int k=0;k<Vers;++k){
+            tmp.dist = distance[k];
+            tmp.node = k;
+            q.push(tmp);
+        }
+//        while(!q.empty()){
+//            cout<<q.top().node<<' '<<q.top().dist<<endl;
+//            q.pop();
+//        }
+        for(i=1;i<Vers;++i){
+            while(!q.empty()){
+                tmp = q.top();
+                min = tmp.dist;
+                u = tmp.node;
+                if(known[u]){
+                    q.pop();
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            //cout<<u<<' '<<min<<endl;
+            known[u] = true;
+            for(p = verList[u].head; p !=NULL;p = p->next){
+                if(!known[p->end_index]){
+                    if(distance[p->end_index]>min + p->weight){
+                        steps[p->end_index] = steps[u]+1;
+                        distance[p->end_index] = min + p->weight;
+                        prev[p->end_index] = u;
+                        tmp.dist = distance[p->end_index];
+                        tmp.node = p->end_index;
+                        q.push(tmp);
+                    }
+                    else if(distance[p->end_index] == min + p->weight){
+                        if(steps[u]+1<steps[p->end_index])
+                        {
+                            steps[p->end_index] = steps[u]+1;
+                            distance[p->end_index] = min + p->weight;
+                            prev[p->end_index] = u;
+                        }
+                    }
                 }
             }
         }
-        for(i = 1;i<=Vers;++i){
-            cout<<"从"<<start<<"到"<<verList[i].ver<<"的路径为:"<<endl;
-            printPath(sNo,i,prev);
-            cout<<"\t长度为:"<<distance[i]<<endl;
-        }
+        cout<<distance[end]<<endl;
+        printPath(sNo,end,prev);
+
     }
-private:
     void printPath(int start, int end, int prev[])const{
         if(start==end){
             cout<<verList[start].ver;
             return;
         }
         printPath(start,prev[end],prev);
-        cout<<"-"<<verList[end].ver;
+        cout<<" "<<verList[end].ver;
     }
 };
 
@@ -150,7 +184,7 @@ int main()
 {
     int n,m,start,end,a,b,p;
     cin>>n>>m>>start>>end;
-    adjListGraph graph(n);
+    adjListGraph graph(n+1);
     for(int i=0;i<m;++i)
     {
         cin>>a>>b>>p;

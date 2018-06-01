@@ -1,4 +1,5 @@
 #include <iostream>
+#include <limits.h>
 using namespace std;
 
 struct edgeNode
@@ -16,7 +17,8 @@ private:
     edgeNode **verList;
     int vers;
 public:
-    adjList(int sz) :vers(sz), verList(new edgeNode*[sz + 1]()) {}
+    adjList(int sz) :vers(sz), verList(new edgeNode*[sz + 1]())
+    {}
     ~adjList()
     {
         for (int i = 1;i <= vers;++i)
@@ -35,47 +37,50 @@ public:
     {
         verList[u] = new edgeNode(v, w, verList[u]);
     }
-    edgeNode *vat(int i)
+    int spath(int start, int end)
     {
-        return verList[i];
+        int q[150];
+        int back = 0, front = 0;
+
+        int distance[vers+1];
+        for (int i = 1;i <= vers;++i)
+            distance[i] = INT_MAX;
+        distance[start] = 0;
+        q[back] = start;
+
+        int cur_ver;
+        while (front <= back)
+        {
+            cur_ver = q[front++];
+            edgeNode *ver = verList[cur_ver];
+            while (ver)
+            {
+                if (distance[cur_ver] + ver->weight < distance[ver->end])
+                {
+                    distance[ver->end] = distance[cur_ver] + ver->weight;
+                    ++back;
+                    q[back] = ver->end;
+                }
+                ver = ver->next;
+            }
+        }
+        return distance[end];
     }
 };
 
 int main()
 {
-    int n, m, start, end;
+    int n, m;
+    int start, end;
     cin >> n >> m >> start >> end;
-    int u, v, w;
+    int a, b, p;
     adjList graph(n);
     for (int i = 0;i < m;++i)
     {
-        cin >> u >> v >> w;
-        graph.insert(u, v, w);
+        cin >> a >> b >> p;
+        graph.insert(a, b, p);
     }
-    int q[105];
-    int back = -1;
-    int front = 0;
-    int distance[11];
-    for (int i = 1;i <= n;++i)distance[i] = 0x7fffffff;
-    distance[start] = 0;
-    q[++back] = start;
-    int cur;
-    while (front <= back)
-    {
-        cur = q[front++];
-        edgeNode *vert = graph.vat(cur);
-        while (vert)
-        {
-            if (distance[cur] + vert->weight < distance[vert->end])
-            {
-                distance[vert->end] = distance[cur] + vert->weight;
-                q[++back] = vert->end;
-            }
-            vert = vert->next;
-        }
-    }
-    cout << distance[end] << endl;
-    cin.get();
-    cin.get();
+    int res = graph.spath(start, end);
+    cout<<res;
     return 0;
 }

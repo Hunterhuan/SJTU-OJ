@@ -2,6 +2,7 @@
 #include <algorithm>
 using namespace std;
 
+//quickly to sort
 template<class T>
 void quickSort(T s[], int l, int r)
 {
@@ -32,9 +33,7 @@ private:
     int *parent;
 public:
     disjointSet(int n) :parent(new int[n + 1])
-    {
-        for (int i = 1;i <= n;++i) parent[i] = -1;
-    }
+    {for (int i = 1;i <= n;++i)parent[i] = -1;}
     ~disjointSet() { delete[]parent; }
     int Find(int x)
     {
@@ -156,7 +155,7 @@ public:
         delete [] verList;
     }
     int kruskal()const{
-        int edgesAccepted = 0, u , v;
+        int edges_ac = 0, u , v;
         edgeNode *p;
         disjointSet ds(Vers);
         edge pq[Edges+1];
@@ -172,17 +171,19 @@ public:
                 }
             }
         }
+
         quickSort(pq,0,index-1);
         int tmp = 0;
         int ans = 0;
-        while(edgesAccepted <Vers -1){
+        while(edges_ac <Vers -1){
             edge e = pq[tmp];
             ++tmp;
             u = ds.Find(e.begin_index);
             v = ds.Find(e.end_index);
-            if(u!=v){
+            //if not create a circle
+            if(u != v){
                 ans += e.w;
-                edgesAccepted++;
+                edges_ac++;
                 ds.Union(u,v);
                 //cout<<"("<<verList[e.begin_index].ver<<','<<verList[e.end_index].ver<<")\t";
             }
@@ -198,11 +199,13 @@ int main()
     cin>>n>>m;
     int a,b,p;
     adjListGraph graph(n);
+
     for(int i=0;i<m;++i){
         cin>>a>>b>>p;
         graph.insert(a,b,p);
         graph.insert(b,a,p);
     }
-    cout<<graph.kruskal();
+    int res = graph.kruskal();
+    cout<<res;
     return 0;
 }
