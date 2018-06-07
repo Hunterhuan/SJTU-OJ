@@ -25,6 +25,6 @@ int main()
         if(j==n)
             cout<<"N"<<endl;
     }
-    cout << "Hello world!" << endl;
+    //cout << "Hello world!" << endl;
     return 0;
 }
