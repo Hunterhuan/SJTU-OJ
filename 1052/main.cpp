@@ -1,28 +1,38 @@
 #include <iostream>
-#include <set>
 using namespace std;
-int N;
-int n[102];
-set<int> s[102];
-void get_union(int a,int b)
-{
-    set_union()
-}
+//not done
 int main()
 {
-    cin>>N;
-    for(int i=1;i<=N;++i)
-        cin>>n[i];
-    for(int i=1;i<=N;++i)
-    {
-        for(int j=0;j<n[i];++j)
-        {
-            int tmp;
+    int n;
+    cin>>n;
+    set<int> *element = new set<int>[n+1];
+    int index[n+1];
+    for(int i=1;i<=n;++i){
+        cin>>index[i];
+    }
+    int tmp;
+    for(int i=1;i<=n;++i){
+        for(int j=0;j<index[i];++j){
             cin>>tmp;
-            s[i].insert(tmp);
+            element.insert(tmp);
         }
     }
-
+    int m;
+    cin>>m;
+    char t;
+    int a,b;
+    for(int i=0;i<m;++i){
+        cin>>t>>a>>b;
+        if(t=='+'){
+            a.setunion(b);
+        }
+        else if(t=='-'){
+            a.setdifferent(b);
+        }
+        else{
+            a.setjoint(b);
+        }
+    }
     cout << "Hello world!" << endl;
     return 0;
 }

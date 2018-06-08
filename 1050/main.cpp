@@ -1,289 +1,189 @@
 #include <iostream>
-#include <algorithm>
-#include <cmath>
-#include <stdio.h>
 using namespace std;
-template<class T>
+
+//使用别人的code
+
 class bernoulli
 {
-    //儿子兄弟表示法
-    struct Node
+private:
+    struct node
     {
-        T data;
-        Node * son;
-        Node *brother;
-        Node(T n,Node * leftNode=NULL,Node * rightNode=NULL)
-        {
-            data = n;
-            son = leftNode;
-            brother = rightNode;
-        }
-        Node(){}
+        int data;
+        node *son, *brother;
+
+        node() {}
+        node(int x, node *p = NULL, node *q = NULL) :data(x), son(p), brother(q) {}
     };
 
-    Node **forest;
-    int maxSize;
+    node **forest;
+    int len;
 
-    //一个树的递归删除
-    void deleteTree(Node *rt)
+    node* merge(node *t1, node *t2)
     {
-        Node *son = rt->son, *t;
-        while(son!=NULL)
-        {
-            t = son;
-            son = son->brother;
-            deleteTree(t);
-        }
-        delete rt;
+        if (t1->data > t2->data)
+            return merge(t2, t1);
+        t2->brother = t1->son;
+        t1->son = t2;
+        return t1;
     }
-    Node* merge(Node *t1, Node *t2)
+
+    void clear(node *p)
     {
-        Node *mi, *ma;
-        if(t1->data < t2->data)
+        if (p)
         {
-            mi = t1;
-            ma = t2;
+            node *tmp = p->son;
+            delete p;
+            while (tmp)
+            {
+                p = tmp->brother;
+                clear(tmp);
+                tmp = p;
+            }
         }
-        else
-        {
-            mi = t2;
-            ma = t1;
-        }
-        if(mi->son==NULL)
-            mi->son = ma;
-        else
-        {
-            Node *t = mi->son;
-            while(t->brother !=NULL)
-                t = t->brother;
-            t->brother = ma;
-        }
-        return mi;
+    }
+
+    void doubleSpace()
+    {
+        node **tmp = new node*[len * 2]();
+        for (int i = 0;i < len;++i) tmp[i] = forest[i];
+        len *= 2;
+        delete[]forest;
+        forest = tmp;
     }
 public:
-    bernoulli(int n=300000)
+    bernoulli(int initSize=10):len(initSize)
     {
-        //计算队列所需array长度
-        maxSize = int(log(n)/log(2))+1;
-        forest = new Node*[maxSize];
-        for(int i=0;i<maxSize;++i)
-            forest[i] = NULL;
+        forest = new node*[len]();
     }
     ~bernoulli()
     {
-        //删除每个树
-        for(int i=0;i<maxSize;++i)
-        {
-            if(forest[i]!=NULL)
-                deleteTree(forest[i]);
-        }
-        delete [] forest;
+        for (int i = 0;i < len;++i) clear(forest[i]);
+        delete[]forest;
     }
-
-    //找到最小值的队列中坐标
-    int findmin()
+    void insert(int x)
     {
-        int min_index;
-        int i=0;
-        for(;i<maxSize&&forest[i]==NULL;++i);
-        min_index = i;
-
-        for(;i<maxSize;++i)
-            if(forest[i]!=NULL && forest[i]->data<forest[min_index]->data)
-                min_index=i;
-        return min_index;
+        node *tmp = new node(x);
+        int i;
+        for (i = 0;i < len;++i)
+        {
+            if (!forest[i]) break;
+            tmp = merge(forest[i], tmp);
+            forest[i] = NULL;
+        }
+        if (i == len) doubleSpace();
+        forest[i] = tmp;
     }
-
     void merge(bernoulli &other)
     {
-        Node **tmp = forest, *carry;
-        int tmpSize = maxSize;
-        int m = min(maxSize,other.maxSize);
-        int i;
-        //求出合并后的树的规模
-        if(maxSize<other.maxSize)
+        if (&other == this) return;
+        while (len <= other.len)doubleSpace();
+        node* carry = NULL;
+        for (int i = 0;i < other.len;++i)
         {
-            maxSize = other.maxSize;
-            if(other.forest[maxSize]!=NULL)
-                ++maxSize;
-        }
-        else if(forest[maxSize]!=NULL)
-            ++maxSize;
-        //初始化队列
-        forest = new Node *[maxSize];
-        for(i=0;i<maxSize;++i)
-            forest[i] = NULL;
-
-        carry = NULL;
-        for(i=0;i<m;++i)
-        {
-            if(carry==NULL)
+            if (forest[i] && other.forest[i])
             {
-                if(tmp[i]==NULL)
-                    forest[i] = other.forest[i];
+                if (carry)
+                {
+                    carry = merge(carry, other.forest[i]);
+                    other.forest[i] = NULL;
+                }
                 else
                 {
-                    if(other.forest[i]==NULL)
-                        forest[i] = tmp[i];
-                    else
-                        carry = merge(other.forest[i],tmp[i]);
+                    carry = merge(forest[i], other.forest[i]);
+                    other.forest[i] = forest[i] = NULL;
                 }
             }
             else
             {
-                if(tmp[i]!=NULL && other.forest[i]!=NULL)
+                if (carry)
                 {
-                    forest[i] = carry;
-                    carry = merge(other.forest[i],tmp[i]);
-                }
-                else
-                {
-                    if(tmp[i]==NULL && other.forest[i]==NULL)
+                    if (forest[i] || other.forest[i])
+                    {
+                        carry = merge((other.forest[i] == NULL ? forest[i] : other.forest[i]), carry);
+                        other.forest[i] = forest[i] = NULL;
+                    }
+                    else
                     {
                         forest[i] = carry;
                         carry = NULL;
                     }
-                    else if(tmp[i]==NULL)
-                        carry = merge(other.forest[i],carry);
-                    else
-                        carry = merge(tmp[i],carry);
+                }
+                else
+                {
+                    if (!forest[i])
+                    {
+                        forest[i] = other.forest[i];
+                        other.forest[i] = NULL;
+                    }
                 }
             }
         }
-        if(other.maxSize == m)
+        if (carry) forest[other.len] = carry;
+    }
+    int pop()
+    {
+        int min = 0x7fffffff;
+        int pos = -1;
+        for (int i = 0;i < len;++i)
         {
-            for(;i<tmpSize;++i)
+            if (forest[i] && forest[i]->data < min)
             {
-                if(carry == NULL)
-                    forest[i] = tmp[i];
-                else
-                {
-                    if(tmp[i] == NULL)
-                    {
-                        forest[i] = carry;
-                        carry = NULL;
-                    }
-                    else
-                        carry = merge(carry,tmp[i]);
-                }
+                min = forest[i]->data;
+                pos = i;
             }
         }
-        else
+        if (pos == -1) return -1;
+        bernoulli sub(pos+1);       //pos可能为0；
+        int i = pos - 1;
+        node *res = forest[pos]->son;
+        while (res)
         {
-            for(;i<other.maxSize;++i)
-            {
-                if(carry == NULL)
-                    forest[i] = other.forest[i];
-                else
-                {
-                    if(other.forest[i] == NULL)
-                    {
-                        forest[i] = carry;
-                        carry = NULL;
-                    }
-                    else
-                        carry = merge(carry,other.forest[i]);
-                }
-            }
+            sub.forest[i--] = res;
+            res = res->brother;
+            sub.forest[i + 1]->brother = NULL; //因为插入用的是反序。
         }
-
-        if(carry!=NULL)
-            forest[i] = carry;
-        for(i = 0;i<other.maxSize;++i)
-            other.forest[i] = NULL;
-        delete [] tmp;
-    }
-
-    void enQueue(T x)
-    {
-        bernoulli tmp;
-        tmp.forest[0] = new Node(x);
-        merge(tmp);
-    }
-
-    T deQueue()
-    {
-        int index = findmin();
-        T top;
-        if(index == 0)
-        {
-            top = forest[0]->data;
-            delete forest[0];
-            forest[0] = NULL;
-            return top;
-        }
-        Node *t = forest[index],*son,*brother;
-        int Size = int(pow(2,index)-1);
-        bernoulli tmp(Size);
-        top = t->data;
-        forest[index] = NULL;
-
-        son = t->son;
-        delete t;
-        int i=0;
-        do{
-            tmp.forest[i++] = son;
-            brother = son->brother;
-            son->brother = NULL;
-        }while((son = brother)!=NULL);
-//        for(;i<index;++i)
-//        {
-//            tmp.forest[i] = son;
-//            son = son->brother;
-//            tmp.forest[i]->brother = NULL;
-//        }
-        merge(tmp);
-        return top;
-    }
-    bool isEmpty()
-    {
-        for(int i=0;i<maxSize;++i)
-        {
-            if(forest[i]!=NULL)
-                return false;
-        }
-        return true;
-    }
-    T getHead()
-    {
-        int index = findmin();
-        return forest[index]->data;
+        delete forest[pos];
+        forest[pos] = NULL;
+        merge(sub);
+        return min;
     }
 };
+
 int main()
 {
-    int N,M;
-    scanf("%d%d",&N,&M);
-    bernoulli<int> q[N];
-    int s;
-    for(int i=0;i<N;++i)
+    ios::sync_with_stdio(false);
+    cin.tie(NULL);
+    cout.tie(NULL);
+    int N, M;
+    cin >> N >> M;
+    int x, y;
+    bernoulli *q = new bernoulli[N];
+    for (int i = 0;i < N;++i)
     {
-        scanf("%d",&s);
-        q[i].enQueue(s);
+        cin >> x;
+        q[i].insert(x);
     }
-    int x;
-    int s1,s2;
-    for(int i=0;i<M;++i)
+    int command;
+    for (int i = 0;i < M;++i)
     {
-        scanf("%d",&x);
-        if(x==0)
+        cin >> command;
+        switch (command)
         {
-            scanf("%d%d",&s1,&s2);
-            q[s1].merge(q[s2]);
-        }
-        else if(x==1)
-        {
-            scanf("%d",&s1);
-            if(q[s1].isEmpty())
-                cout<<-1<<endl;
-            else
-                cout<<q[s1].deQueue()<<endl;
-        }
-        else
-        {
-            scanf("%d%d",&s1,&s2);
-            q[s1].enQueue(s2);
+        case 0:
+            cin >> x >> y;
+            q[x].merge(q[y]);
+            break;
+        case 1:
+            cin >> x;
+            cout << q[x].pop() << '\n';
+            break;
+        case 2:
+            cin >> x >> y;
+            q[x].insert(y);
         }
     }
+    cin.get();
+    cin.get();
+    delete[]q;
     return 0;
 }
