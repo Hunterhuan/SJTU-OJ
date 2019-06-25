@@ -1,59 +1,216 @@
 #include <iostream>
-#include <cmath>
+#include "string.h"
 using namespace std;
-
-int cost[15][15];    //城市间的开销
-int dp[15][32768];  //动归的状态
-int N;
-int get_num_of1(int state) //计算一个整数的二进制中有多少个1，相当于状态中走过的城市个数
+ 
+class bigInt
 {
-    int c = 0;
-    while (state)
+    friend bigInt operator+(bigInt a,bigInt b);
+    friend bigInt operator-(bigInt a,bigInt b);
+    friend bigInt operator*(bigInt a,bigInt b);
+public:
+    int ans[3000];
+    int length;
+    bigInt()
     {
-        state = state&(state-1);
-        c++;
+        memset(ans,0,sizeof(int)*1000);
+        length=0;
+    }
+    bigInt(int a)
+    {
+        memset(ans,0,sizeof(int)*1000);
+        int i=0;
+        while(a!=0)
+        {
+            ans[i++]=a%10;
+            a=a/10;
+        }
+        length=i;
+    }
+    bigInt(const bigInt& a)
+    {
+        length=a.length;
+        for(int i=0;i<length;i++)
+        {
+            ans[i]=a.ans[i];
+        }
+    }
+    bigInt& operator=(const bigInt &a)
+    {
+        if(&a==this) return (*this);
+        length=a.length;
+        for(int i=0;i<length;i++)
+        {
+            ans[i]=a.ans[i];
+        }
+        return (*this);
+    }
+    void print()
+    {
+        for(int i=length-1;i>=0;i--)
+        {
+            cout<<ans[i];
+        }
+        cout<<endl;
+    }
+ 
+ 
+};
+bigInt operator*(bigInt a,int b)
+{
+    bigInt c;
+    int carry=0;
+    for(int i=0;i<a.length;i++)
+    {
+        int tp=a.ans[i]*b+carry;
+        carry=tp/10;
+        c.ans[i]=tp%10;
+    }
+    int j=a.length;
+    while(carry!=0)
+    {
+        c.ans[j++]=carry%10;
+        carry=carry/10;
+    }
+    c.length=j;
+    return c;
+}
+bigInt operator-(bigInt a,bigInt b)
+{
+    bigInt c;
+    int carry=0;
+    int length_small=(a.length>b.length)?b.length:a.length;
+    for(int i=0;i<length_small;i++)
+    {
+        if(a.ans[i]<(b.ans[i]+carry))
+        {
+            c.ans[i]=10+a.ans[i]-b.ans[i]-carry;
+            carry=1;
+        }
+        else
+        {
+            c.ans[i]=a.ans[i]-b.ans[i]-carry;
+            carry=0;
+        }
+    }
+    if(a.length>b.length)
+    {
+        for(int i=b.length;i<a.length;i++)
+        {
+            if(a.ans[i]<carry)
+            {
+                c.ans[i]=10+a.ans[i]-carry;
+                carry=1;
+            }
+            else
+            {
+                c.ans[i]=a.ans[i]-carry;
+                carry=0;
+            }
+        }
+    }
+    else if(a.length<b.length)
+    {
+        for(int i=a.length;i<b.length;i++)
+        {
+            if(a.ans[i]<carry)
+            {
+                c.ans[i]=10+b.ans[i]-carry;
+                carry=1;
+            }
+            else
+            {
+                c.ans[i]=b.ans[i]-carry;
+                carry=0;
+            }
+        }
+    }
+    for(int i=max(a.length,b.length);i>=0;i--)
+    {
+        if(c.ans[i]!=0)
+        {
+            c.length=i+1;
+            break;
+        }
     }
     return c;
 }
-int getc(int cur,int state)  //递归的过程
+ 
+bigInt operator+(bigInt a,bigInt b)
 {
-    if (dp[cur][state] > -1) return dp[cur][state];
-    //state = ;  //去掉当前位
-    if (get_num_of1(state) == 2) return dp[cur][state] = cost[cur][0];  //没有其他点要经过了
-    int t = 2; //不算出发点
-    int mini = 3000000;
-    int tem;
-    for (int i = 1;i < N;++i,t<<=1)
+    bigInt c;
+    int carry=0;
+    int length_small=(a.length>b.length)?b.length:a.length;
+    for(int i=0;i<length_small;i++)
     {
-        if (i==cur) continue;
-        if (state & t)  //当前城市走过
+        int tp=a.ans[i]+b.ans[i]+carry;
+        c.ans[i]=tp%10;
+        carry=tp/10;
+    }
+    if(a.length>b.length)
+    {
+        for(int i=b.length;i<a.length;i++)
         {
-            tem = getc(i,state & (~(1<<cur))) + cost[i][cur]; //拿掉当前位
-            if (tem < mini) mini = tem;
+            int tp=a.ans[i]+carry;
+            c.ans[i]=tp%10;
+            carry=tp/10;
+        }
+        if(carry==1)
+        {
+            c.ans[a.length]=carry;
+            c.length=a.length+1;
+        }
+        else
+        {
+            c.length=a.length;
         }
     }
-    return dp[cur][state] = mini;
+    else if(a.length<b.length)
+    {
+        for(int i=a.length;i<b.length;i++)
+        {
+            int tp=b.ans[i]+carry;
+            c.ans[i]=tp%10;
+            carry=tp/10;
+        }
+        if(carry==1)
+        {
+            c.ans[b.length]=carry;
+            c.length=b.length+1;
+        }
+        else
+        {
+            c.length=b.length;
+        }
+    }
+    else
+    {
+        if(carry==1)
+        {
+            c.ans[a.length]=1;
+            c.length=a.length+1;
+        }
+        else
+        {
+            c.length=a.length;
+        }
+    }
+    return c;
 }
-
-int main(){
-    cin>>N;
-
-    for (int i = 0;i < N;++i) for (int j = 0;j < N;++j) cin>>cost[i][j];
-    int num = pow(2,N);
-    if (N==1)
+ 
+ 
+int main()
+{
+    int a,b,c;
+    int N;
+    cin>>a>>b>>c>>N;
+    bigInt *res=new bigInt[N+1];
+    res[0]=1;
+    res[1]=a+1;
+    res[2]=b+a+a*a+1;
+    for(int i=3;i<=N;i++)
     {
-        cout<<0;
-        return 0;
+        res[i]=res[i-3]*c+(res[i-2]-res[i-3])*b+(res[i-1]-res[i-2])*a+res[i-1];
     }
-    for (int i = 0;i < N;++i) for (int j= 0;j < pow(2,N);++j) dp[i][j] = -1; //初始化
-    dp[0][1] = 0;
-    int mini = 3000000;
-    for (int i = 1;i < N;++i)  //从第i个城市返回出发点
-    {
-        int tem = cost[0][i] + getc(i,num-1);
-        if (tem < mini) mini = tem;
-    }
-    cout<<mini;
-
+    res[N].print();
     return 0;
 }

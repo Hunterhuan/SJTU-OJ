@@ -41,3 +41,43 @@ int main()
             cout<<"NO"<<endl;
     }
 }
+
+
+
+
+
+#include <iostream>
+#include <stdio.h>
+#include <vector>
+#include <iostream>
+#include <string.h>
+using namespace std;
+
+char para[102];
+int main(){
+    int n;
+    cin>>n;
+    while(n--){
+        memset(para, 0, sizeof(para));
+        cin>>para;
+        int count = 0;
+        for(int i=0;i<101;++i){
+            if(para[i]=='(')
+               ++count;
+            else if(para[i]==')'){
+                --count;
+                if(count<0){
+                    cout<<"NO"<<endl;
+                    break;
+                }
+            }else{
+                if(count==0)
+                    cout<<"YES"<<endl;
+                else
+                    cout<<"NO"<<endl;
+                break;
+            }
+        }
+    }
+    return 0;
+}

@@ -22,20 +22,22 @@ int main()
             break;
         }
     int n1[4000],n2[4000],result[4000];
+    // 转换成int
     for(int i=1;i<=end1;++i)
-        n1[i] = a[end1-i] -48;
+        n1[i] = int(a[end1-i] -'0');
     for(int i=1;i<=end2;++i)
-        n2[i] = b[end2-i] -48;
+        n2[i] = int(b[end2-i] -'0');
 
     for(int i=1;i<=end1;++i)
     {
         for(int j=1;j<=end2;++j)
         {
-            result[i+j-1] = result[i+j-1] + n1[i]*n2[j];
-            result[i+j] = result[i+j] + result[i+j-1]/10;
+            result[i+j-1] += n1[i]*n2[j];
+            result[i+j] +=  result[i+j-1]/10;
             result[i+j-1] = result[i+j-1]%10;
         }
     }
+    // 找到长度
     int len = end1+end2;
     while(result[len]==0 && len>1)
         --len;

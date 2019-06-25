@@ -1,31 +1,34 @@
-# include <stdio.h>
+#include <iostream>
+#include <stdio.h>
+using namespace std;
+int S[1000001] = {0};
 
-# define INF 105
-
-int n, x, tmp;
-
-int curSum, minSum;
-int ans;
-
-int Min(int x, int y) {return x<y ? x:y;}
-int Max(int x, int y) {return x>y ? x:y;}
-
-int main()
-{
-    scanf("%d", &n);
-    minSum = INF;
-    curSum = 0;
-    ans = 0;
-    for (int i = 0; i < n; ++i) {
-        scanf("%d", &x);
-        curSum += x;
-        ans = Max(ans, curSum-minSum);
-        minSum = Min(minSum, curSum-x);
-        tmp = x;
+int main(){
+    //freopen("1.txt","r",stdin);
+    int n;
+    int num;
+    cin >> n;
+    cin >> S[0];
+    for (int i = 1 ; i < n; i++){
+        cin >> num;
+        S[i] = S[i-1] + num;
     }
 
-    if (ans > 0) printf("%d\n", ans);
-    else printf("Game Over\n");
-
+    int min = S[0];
+    int min_flag = 0;
+    int max = S[1];
+    for (int i = 1; i < n; i++){
+        if (min > S[i]){
+            min = S[i];
+            min_flag = i;
+        }
+        if (i - min_flag > 1 && S[i] - min > max)
+            max = S[i]-min;
+    }
+    if(max <= 0)
+        cout << "Game Over";
+    else
+        cout << max;
     return 0;
+
 }

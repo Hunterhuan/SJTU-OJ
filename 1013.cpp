@@ -1,27 +1,27 @@
-#include<iostream>
+#include <iostream>
+#include <stdio.h>
+#include <vector>
+#include <iostream>
+#include <string.h>
 using namespace std;
-unsigned int f[10005];//全局变量，自动初始化为0
-unsigned int weight[1005];
-unsigned int value[1005];
-#define  max(x,y)   (x)>(y)?(x):(y)
-int main()
-{
 
-    int N,M;
-    cin>>M;
-    cin>>N;
-    for (int i=1;i<=N; i++)
-    {
-        cin>>weight[i]>>value[i];
-    }
-    for (int i=1; i<=N; i++)
-        for (int j=1; j<=M; j++)
-        {
-            if (weight[i]<=j)
-            {
-                f[j]=max(f[j],f[j-weight[i]]+value[i]);
+
+// f[i] 就表示在i体积限制下，最高的价值
+
+int f[10016];
+int V, N;
+int C[1016], W[1016];
+
+int main(){
+    cin>>V>>N;
+    for(int i=0;i<N;++i)
+        cin>>C[i]>>W[i];
+    for(int i=0;i<N;++i){
+        for(int j=1;j<=V;++j){
+            if(j>=C[i]){
+                f[j] = max(f[j], f[j-C[i]]+W[i]);
             }
         }
-
-    cout<<f[M]<<endl;
+    }
+    cout<<f[V]<<endl;
 }
