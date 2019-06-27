@@ -1,62 +1,61 @@
 #include <iostream>
+#include <string.h>
+#include <vector>
+#include <queue>
+#include <unordered_map>
+#include <cmath>
+#include <map>
+#include <algorithm>
+#include <limits.h>
+#include <cstring>
+#include <set>
 
+
+#define lowbit(a) ((a)&-(a))
 using namespace std;
-int N;
-int nb[10002];
 
-void inc(int a,int b)
-{
-    for(int i=a;i<=N;++i)
-    {
-        nb[i] += b;
+int a[10005];
+int c[10005];
+
+void update(int x, int y, int n){
+    for(int i=x; i<=n; i+= lowbit(i)){
+        c[i] += y;
     }
 }
 
-void dec(int a,int b)
-{
-    for(int i= a;i<=N;++i)
-    {
-        nb[i] -= b;
+int getsum(int x, int n){
+    int ans = 0;
+    for(int i=x; i; i-= lowbit(i)){
+        ans += c[i];
     }
-}
-
-int query(int a, int b)
-{
-    return nb[b]-nb[a-1];
+    return ans;
 }
 
 int main()
 {
-    cin>>N;
-    cin>>nb[1];
-    nb[0] = 0;
-    for(int i=2;i<=N;++i)
-    {
-        cin>>nb[i];
-        nb[i] = nb[i] + nb[i-1];
+    ios::sync_with_stdio(false);
+    memset(a, 0, sizeof(a));
+    memset(c, 0, sizeof(c));
+    int n;
+    cin>>n;
+    int tmp;
+    for(int i=1;i<=n;++i){
+        cin>>tmp;
+        update(i, tmp, n);
     }
-    char stru[10];
-    int a,b;
-    while(true)
-    {
-        cin>>stru;
-        if(stru[0]=='q')
-        {
-            cin>>a>>b;
-            cout<<query(a,b)<<endl;
+    string query;
+    int x,y;
+    while(cin>>query){
+        if(query=="end")
+            return 0;
+        cin>>x>>y;
+        if(query=="query"){
+            cout<<getsum(y,n)-getsum(x-1,n)<<endl;
+        }else if(query=="inc"){
+            update(x, y, n);
+        }else if(query=="dec"){
+            update(x, -y, n);
         }
-        else if(stru[0]=='i')
-        {
-            cin>>a>>b;
-            inc(a,b);
-        }
-        else if(stru[0]=='d')
-        {
-            cin>>a>>b;
-            dec(a,b);
-        }
-        else
-            break;
     }
     return 0;
 }

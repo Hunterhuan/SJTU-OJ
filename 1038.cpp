@@ -46,3 +46,27 @@ int main()
     }
     return 0;
 }
+
+
+
+// 约瑟夫环就应该这么解
+// 直接推导出来答案。这个是逆向的思路
+// 本来是一个一个删，这个从1个慢慢加
+#include <iostream>
+using namespace std;
+int K[10000]={0};
+int main()
+{
+    int M;
+    cin>>M;
+    int ans=0;
+    for(int i=1;i<=M-1;i++){
+        cin>>K[i];
+    }
+    for(int i=2;i<=M;i++)
+    {
+        ans = (ans+K[M-i+1]) % i;
+    }    
+    cout<<ans+1<<endl;
+    return 0;
+}
