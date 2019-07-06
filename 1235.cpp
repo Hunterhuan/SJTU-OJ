@@ -193,3 +193,78 @@ int main()
     graph.dijkstra(start,end);
     return 0;
 }
+
+
+
+
+
+#include <iostream>
+#include <string.h>
+#include <vector>
+#include <queue>
+#include <unordered_map>
+#include <cmath>
+#include <map>
+#include <algorithm>
+#include <limits.h>
+#include <cstring>
+#include <set>
+#include <stack>
+
+#include <cstdio>
+#include <iostream>
+#include <cstring>
+#include <algorithm>
+#include <cstdlib>
+#include <iomanip>
+using namespace std;
+
+
+int main()
+{
+    ios::sync_with_stdio(false);
+    int n,m,start, endpoint;
+    int a,b,c;
+    cin>>n>>m>>start>>endpoint;
+    bool visited[n+1];
+    int parents[n+1];
+    memset(parents, -1, sizeof(parents));
+    memset(visited, 0, sizeof(visited));
+    vector<vector<pair<int,int>>> graph(n+1);
+    for(int i=0;i<m;++i){
+        cin>>a>>b>>c;
+        graph[a].push_back(make_pair(b,c));
+        graph[a].push_back(make_pair(a,c));
+    }
+    priority_queue<vector<int>, vector<vector<int>>, greater<vector<int>>> pq;
+    pq.push({0, 1, start, -1});
+    int length = 0;
+    while(!pq.empty()){
+        auto tmp = pq.top();
+        pq.pop();
+        if(visited[tmp[2]])
+            continue;
+        visited[tmp[2]] = true;
+        parents[tmp[2]] = tmp[3];
+        if(tmp[2]==endpoint){
+            length = tmp[0];
+            break;
+        }
+        for(int i=0;i<graph[tmp[2]].size();++i){
+            if(visited[graph[tmp[2]][i].first])
+                continue;
+            pq.push({tmp[0]+graph[tmp[2]][i].second, tmp[1]+1, graph[tmp[2]][i].first, tmp[2]});
+        }
+    }
+    cout<<length<<endl;
+    stack<int> s;
+    while(endpoint!=-1){
+        s.push(endpoint);
+        endpoint = parents[endpoint];
+    }
+    while(!s.empty()){
+        cout<<s.top()<<' ';
+        s.pop();
+    }
+    return 0;
+}
